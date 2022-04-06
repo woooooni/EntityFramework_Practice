@@ -9,6 +9,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace MMO_EFCore
 {
+    // AsNoTracking : ReadOnly << Tracking Snapshot
+    // 데이터만 긁어오려고 할때 사용.
+    // Include : Eager Loading(즉시 로딩) :: TODO
     public class DbCommands
     {
         public static void InitializeDB(bool forceReset = false)
@@ -17,6 +20,7 @@ namespace MMO_EFCore
             {
                 if (!forceReset && (db.GetService<IDatabaseCreator>() as RelationalDatabaseCreator).Exists())
                     return;
+
                 db.Database.EnsureDeleted();
                 db.Database.EnsureCreated();
 
@@ -27,10 +31,9 @@ namespace MMO_EFCore
 
         public static void CreateTestData(AppDbContext db)
         {
-            var player = new Player()
-            {
-                Name = "Tiny-Prince"
-            };
+            var tinyPrince = new Player(){ Name = "Tiny-Prince" };
+            var faker = new Player(){ Name = "Faker" };
+            var taewonKim = new Player(){ Name = "KimTaeWon" };
 
             var items = new List<Item>()
             {
@@ -38,79 +41,121 @@ namespace MMO_EFCore
                 {
                     TemplateId = 101,
                     CreatedDate = DateTime.Now,
-                    Owner = player
+                    Owner = tinyPrince
                 },
                 new Item()
                 {
                    TemplateId = 102,
                    CreatedDate = DateTime.Now,
-                   Owner = new Player(){ Name = "Faker" }
+                   Owner = faker
                 },
                 new Item()
                 {
                    TemplateId = 103,
                    CreatedDate = DateTime.Now,
-                   Owner = new Player{ Name = "Woooo_ni" }
+                   Owner = taewonKim
                 }
 
             };
 
+            Guild guild = new Guild()
+            {
+                GuildName = "T1",
+                Members = new List<Player>() { tinyPrince, taewonKim, faker }
+            };
+
             db.Items.AddRange(items);
+            db.Guilds.Add(guild);
             db.SaveChanges();
         }
 
-        public static void ReadAll()
+
+        //ex)
+        //1 + 2) 특정 길드에 있는 길드원들이 소지한 모든 아이템들을 보고 싶어요!
+
+        // 장점 : DB 접근 한 번으로 다 로딩(Join)
+        // 단점 : 필요 없는 데이터도 전부 가져옴..
+        public static void EagerLoading()
         {
+            // Include() vs ThenInclude() :: TODO
+            // First() :: TODO
+            Console.WriteLine("길드 이름을 입력하세요.");
+            Console.Write(" > ");
+            string name = Console.ReadLine();
+
             using(var db = new AppDbContext())
             {
-                // AsNoTracking : ReadOnly << Tracking Snapshot
-                // 데이터만 긁어오려고 할때 사용.
-                // Include : Eager Loading(즉시 로딩) :: TODO
-                foreach(Item item in db.Items.AsNoTracking().Include(i => i.Owner))
+                Guild guild = db.Guilds.AsNoTracking()
+                                        .Where(g => g.GuildName == name)
+                                        .Include(g => g.Members)
+                                        .ThenInclude(p => p.Items)
+                                        .First();
+
+                foreach(Player player in guild.Members)
                 {
-                    Console.WriteLine($"TemplateID({item.TemplateId}) Owner({item.Owner.Name}) CreatedDate({item.CreatedDate})");
+                    foreach(Item item in player.Items)
+                    {
+                        Console.WriteLine($"TemplateId({item.TemplateId}, Owner({player.Name})");
+                    }
                 }
             }
         }
 
-        //특정 플레이어가 소지한 아이템들의 생성날짜를 수정
-        public static void UpdateDate()
+        // 장점 : 필요한 시점에 필요한 데이터만 로딩 가능.
+        // 단점 : DB 접근 비용이 크다.
+        
+        public static void ExplictLoading()
         {
-            Console.WriteLine("Input Player Name");
-            Console.WriteLine(">");
+            Console.WriteLine("길드 이름을 입력하세요.");
+            Console.Write(" > ");
             string name = Console.ReadLine();
 
             using (var db = new AppDbContext())
             {
-                var items = db.Items.Include(i => i.Owner)
-                    .Where(i => i.Owner.Name == name);
+                Guild guild = db.Guilds
+                                    .Where(g => g.GuildName == name)
+                                    .First();
 
-                foreach(Item item in items)
+                // 명시적
+                db.Entry(guild).Collection(g => g.Members).Load();
+
+                foreach (Player player in guild.Members)
                 {
-                    item.CreatedDate = DateTime.Now;
+                    db.Entry(player).Collection(p => p.Items).Load();
                 }
-                db.SaveChanges();
-            }
 
-            ReadAll();
+                foreach (Player player in guild.Members)
+                {
+                    foreach (Item item in player.Items)
+                    {
+                        Console.WriteLine($"TemplateId({item.TemplateId}, Owner({player.Name})");
+                    }
+                }
+            }
         }
 
-        public static void DeleteItem()
+
+        // 3) 특정 길드에 있는 길드원의 수는?
+        // SELECT COUNT(*)
+        // 장점 : 필요한 정보만 쏙 빼서 로딩.
+        // 단점 : 일일이 Select문을 안에 만들어줘야 함.
+        public static void SelectLoading()
         {
-            Console.WriteLine("Input Player Name");
-            Console.WriteLine(">");
+            Console.WriteLine("길드 이름을 입력하세요.");
+            Console.Write(" > ");
             string name = Console.ReadLine();
 
             using (var db = new AppDbContext())
             {
-                var items = db.Items.Include(i => i.Owner)
-                    .Where(i => i.Owner.Name == name);
+                var info = db.Guilds
+                                .Where(g => g.GuildName == name)
+                                .MapGuildToDto()
+                                .First();
 
-                db.Items.RemoveRange(items);
-                db.SaveChanges();
+                Console.WriteLine($"GuildName({info.Name}), MemberCount({info.MemberCount})");
             }
-
-            ReadAll();
         }
+
     }
 }
+

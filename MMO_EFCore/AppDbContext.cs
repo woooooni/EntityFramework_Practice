@@ -20,7 +20,8 @@ namespace MMO_EFCore
         // DbSet<Item> -> EF Core에게 알려준다.
         // Items 이라는 DB테이블이 있는데, 세부적인 칼럼/키 정보는 Item클래스를 참고해!
         public DbSet<Item> Items { get; set; }
-
+        public DbSet<Player> Players { get; set; }
+        public DbSet<Guild> Guilds { get; set; }
         // 어떤 DB를 어떻게 연결하라~
         // 하드코딩 '지양'
         public const string connString = @"Data Source=(localdb)\ProjectModels;Initial Catalog=EFCoreDb;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
