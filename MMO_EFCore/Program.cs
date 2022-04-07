@@ -16,9 +16,9 @@ namespace MMO_EFCore
 
             Console.WriteLine("명령어를 입력하세요.");
             Console.WriteLine("[0] ForceReset");
-            Console.WriteLine("[1] Eager Loading"); // 즉시 로딩
-            Console.WriteLine("[2] Explict Loading"); // 명시적 로딩
-            Console.WriteLine("[3] Select Loading"); // Select
+            Console.WriteLine("[1] Update (Reload)");
+            Console.WriteLine("[2] Update (Full)");
+            
 
             while (true)
             {
@@ -30,13 +30,12 @@ namespace MMO_EFCore
                         DbCommands.InitializeDB(forceReset: true);
                         break;
                     case "1":
-                        DbCommands.EagerLoading();
+                        DbCommands.UpdateByReload();
                         break;
                     case "2":
-                        DbCommands.ExplictLoading();
+                        DbCommands.UpdateByFull();
                         break;
                     case "3":
-                        DbCommands.SelectLoading();
                         break;
                 }
             }

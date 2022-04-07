@@ -54,3 +54,4 @@ C:\Users\xodnj\Desktop\Study\Unity\EntityFramework_Practice\MMO_EFCore\obj\Debug
 C:\Users\xodnj\Desktop\Study\Unity\EntityFramework_Practice\MMO_EFCore\obj\Debug\net6.0\MMO_EFCore.pdb
 C:\Users\xodnj\Desktop\Study\Unity\EntityFramework_Practice\MMO_EFCore\obj\Debug\net6.0\MMO_EFCore.genruntimeconfig.cache
 C:\Users\xodnj\Desktop\Study\Unity\EntityFramework_Practice\MMO_EFCore\obj\Debug\net6.0\ref\MMO_EFCore.dll
+C:\Users\xodnj\Desktop\Study\Unity\EntityFramework_Practice\MMO_EFCore\bin\Debug\net6.0\Newtonsoft.Json.dll
