@@ -86,93 +86,221 @@ namespace MMO_EFCore
             }
         }
 
+
+
+        #region RelationShip Update
+        public static void ShowItems()
+        {
+            using (var db = new AppDbContext())
+            {
+                foreach (var item in db.Items.Include(i => i.Owner).ToList())
+                {
+                    if (item.Owner == null)
+                        Console.WriteLine($"ItemID({item.ItemId}) TemplateID({item.TemplateId}) Owner(null)");
+                    else
+                        Console.WriteLine($"ItemID({item.ItemId}) TemplateID({item.TemplateId}) OwnerId({item.Owner.PlayerId}) OwnerName({item.Owner.Name})");
+                }
+            }
+        }
+
+        // 1vs1
+        public static void Update_1v1()
+        {
+            ShowItems();
+
+            Console.WriteLine("Input Item Switch PlayerId");
+            Console.Write(" > ");
+            int id = int.Parse(Console.ReadLine());
+
+            using (var db = new AppDbContext())
+            {
+                Player player = db.Players
+                    .Include(p => p.Items)
+                    .Single(p => p.PlayerId == id);
+
+                player.Items.Add(new Item()
+                {
+                    TemplateId = 777,
+                    CreatedDate = DateTime.Now
+                });
+                db.SaveChanges();
+            }
+
+            Console.WriteLine("--- Test Complete ---");
+            ShowItems();
+        }
+
+        // 1 : N
+        // Player : Guild
+        public static void ShowGuilds()
+        {
+            using (var db = new AppDbContext())
+            {
+                foreach (var guild in db.Guilds.MapGuildToDto())
+                {
+                    Console.WriteLine
+                        ($"GuildID({guild.GuildId}) " +
+                        $"Guild Name({guild.Name}) " +
+                        $"MemberCount({guild.MemberCount})");
+                }
+            }
+        }
+
+        // N : N
+
+        public static void Update_1vN()
+        {
+            ShowGuilds();
+
+            Console.WriteLine("Input Item Switch PlayerId");
+            Console.Write(" > ");
+            int id = int.Parse(Console.ReadLine());
+
+            using (var db = new AppDbContext())
+            {
+                Guild guild = db.Guilds
+                    .Include(g => g.Members)
+                    .Single(g => g.GuildId == id);
+
+                guild.Members.Add(new Player()
+                {
+                    Name = "Dopa"
+                });
+                db.SaveChanges();
+            }
+
+            Console.WriteLine("--- Test Complete ---");
+            ShowGuilds();
+        }
+        #endregion
+
+        #region Nullable
+        //
+        // Q) Dependent 데이터가 Principal 데이터 없이 존재할 수 있을까?
+        //public static void ShowItems()
+        //{
+        //    using(var db = new AppDbContext())
+        //    {
+        //        foreach(var item in db.Items.Include(i => i.Owner).ToList())
+        //        {
+        //            if(item.Owner == null)
+        //                Console.WriteLine($"ItemID({item.ItemId}) TemplateID({item.TemplateId}) Owner(null)");
+        //            else
+        //                Console.WriteLine($"ItemID({item.ItemId}) TemplateID({item.TemplateId}) OwnerId({item.Owner.PlayerId}) OwnerName({item.Owner.Name})");
+        //        }
+        //    }
+        //}
+
+        //public static void Test()
+        //{
+        //    ShowItems();
+
+        //    Console.WriteLine("Input Delete PlayerId");
+        //    Console.Write(" > ");
+        //    int id = int.Parse(Console.ReadLine());
+
+        //    using(var db = new AppDbContext())
+        //    {
+        //        Player player = db.Players.Include(p => p.Items)
+        //                                    .Single(p => p.PlayerId == id);
+
+        //        db.Players.Remove(player);
+        //        db.SaveChanges();
+        //    }
+
+        //    Console.WriteLine("--- Test Complete ---");
+        //    ShowItems();
+        //}
+
+        #endregion
+        #region Update
         //Update 3단계
         // 1) Tracked Entity를 얻어온다.
         // 2) Entity 클래스의 Property를 변경.
         // 3) SaveChanges()를 호출.
-        public static void UpdateTest()
-        {
-            using(AppDbContext db = new AppDbContext())
-            {
-                var guild = db.Guilds.Single(g => g.GuildName == "T1"); // 1
-                guild.GuildName = "DWG"; // 2
-                db.SaveChanges(); // 3
-            }
-            /* 내부 SQL구성
-             * 
-             * SELECT TOP(2) GuildId, GuildName
-             * FROM [Guilds]
-             * WHERE GuildName = N'T1';
-             * 
-             * SET NOCOUNT ON;
-             * UPDATE [Guilds]
-             * SET GuildName = @p0
-             * WHERE GuildId = @p1;
-             * SELECT @@ROWCOUNT;
-             */
-        }
+        //public static void UpdateTest()
+        //{
+        //    using(AppDbContext db = new AppDbContext())
+        //    {
+        //        var guild = db.Guilds.Single(g => g.GuildName == "T1"); // 1
+        //        guild.GuildName = "DWG"; // 2
+        //        db.SaveChanges(); // 3
+        //    }
+        //    /* 내부 SQL구성
+        //     * 
+        //     * SELECT TOP(2) GuildId, GuildName
+        //     * FROM [Guilds]
+        //     * WHERE GuildName = N'T1';
+        //     * 
+        //     * SET NOCOUNT ON;
+        //     * UPDATE [Guilds]
+        //     * SET GuildName = @p0
+        //     * WHERE GuildId = @p1;
+        //     * SELECT @@ROWCOUNT;
+        //     */
+        //}
 
 
-        public static void ShowGuilds()
-        {
-            using(var db = new AppDbContext())
-            {
-                foreach(var guild in db.Guilds.MapGuildToDto())
-                {
-                    Console.WriteLine($"GuildID({guild.GuildId}) Guild Name({guild.Name}) MemberCount({guild.MemberCount})");
-                }
-            }
-        }
-        public static void UpdateByReload()
-        {
-            ShowGuilds();
-            Console.WriteLine("Input Guild Id");
-            Console.Write(" > ");
-            int id = int.Parse(Console.ReadLine());
-            Console.WriteLine("Input Guild Name");
-            Console.Write(" > ");
-            string name = Console.ReadLine();
+        //public static void ShowGuilds()
+        //{
+        //    using(var db = new AppDbContext())
+        //    {
+        //        foreach(var guild in db.Guilds.MapGuildToDto())
+        //        {
+        //            Console.WriteLine($"GuildID({guild.GuildId}) Guild Name({guild.Name}) MemberCount({guild.MemberCount})");
+        //        }
+        //    }
+        //}
+        //public static void UpdateByReload()
+        //{
+        //    ShowGuilds();
+        //    Console.WriteLine("Input Guild Id");
+        //    Console.Write(" > ");
+        //    int id = int.Parse(Console.ReadLine());
+        //    Console.WriteLine("Input Guild Name");
+        //    Console.Write(" > ");
+        //    string name = Console.ReadLine();
 
-            using (AppDbContext db = new AppDbContext())
-            {
-                //Reload
-                Guild guild = db.Find<Guild>(id);
-                guild.GuildName = name;
-                db.SaveChanges();
-            }
+        //    using (AppDbContext db = new AppDbContext())
+        //    {
+        //        //Reload
+        //        Guild guild = db.Find<Guild>(id);
+        //        guild.GuildName = name;
+        //        db.SaveChanges();
+        //    }
 
-            Console.WriteLine("------ Update Complete ------");
-            ShowGuilds();
-        }
+        //    Console.WriteLine("------ Update Complete ------");
+        //    ShowGuilds();
+        //}
 
-        public static string MakeUpdateJsonStr()
-        {
-            var jsonStr = "{\"GuildId\" : 1, \"GuildName\" : \"Hello\", \"Members\":null}";
-            return jsonStr;
-        }
+        //public static string MakeUpdateJsonStr()
+        //{
+        //    var jsonStr = "{\"GuildId\" : 1, \"GuildName\" : \"Hello\", \"Members\":null}";
+        //    return jsonStr;
+        //}
 
-        public static void UpdateByFull()
-        {
-            ShowGuilds();
+        //public static void UpdateByFull()
+        //{
+        //    ShowGuilds();
 
-            //string jsonStr = MakeUpdateJsonStr();
-            //Guild guild = JsonConvert.DeserializeObject<Guild>(jsonStr);
+        //    //string jsonStr = MakeUpdateJsonStr();
+        //    //Guild guild = JsonConvert.DeserializeObject<Guild>(jsonStr);
 
-            Guild guild = new Guild()
-            {
-                GuildId = 1,
-                GuildName = "TestGuild",
-            };
-            using (AppDbContext db = new AppDbContext())
-            {
-                db.Guilds.Update(guild);
-                db.SaveChanges();
-            }
+        //    Guild guild = new Guild()
+        //    {
+        //        GuildId = 1,
+        //        GuildName = "TestGuild",
+        //    };
+        //    using (AppDbContext db = new AppDbContext())
+        //    {
+        //        db.Guilds.Update(guild);
+        //        db.SaveChanges();
+        //    }
 
-            Console.WriteLine("------ Update Complete ------");
-            ShowGuilds();
-        }
-
+        //    Console.WriteLine("------ Update Complete ------");
+        //    ShowGuilds();
+        //}
+        #endregion
         #region Loading 방법에 대하여..
         //ex)
         //1 + 2) 특정 길드에 있는 길드원들이 소지한 모든 아이템들을 보고 싶어요!
