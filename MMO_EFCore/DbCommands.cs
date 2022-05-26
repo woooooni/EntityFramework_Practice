@@ -87,8 +87,7 @@ namespace MMO_EFCore
         }
 
 
-
-        #region RelationShip Update
+        #region Delete
         public static void ShowItems()
         {
             using (var db = new AppDbContext())
@@ -102,78 +101,111 @@ namespace MMO_EFCore
                 }
             }
         }
-
-        // 1vs1
-        public static void Update_1v1()
+        public static void TestDelete()
         {
             ShowItems();
-
-            Console.WriteLine("Input Item Switch PlayerId");
+            Console.WriteLine("Select Delete ItemId");
             Console.Write(" > ");
             int id = int.Parse(Console.ReadLine());
 
             using (var db = new AppDbContext())
             {
-                Player player = db.Players
-                    .Include(p => p.Items)
-                    .Single(p => p.PlayerId == id);
-
-                player.Items.Add(new Item()
-                {
-                    TemplateId = 777,
-                    CreatedDate = DateTime.Now
-                });
+                Item item = db.Items.Find(id);
+                //db.Items.Remove(item);
+                item.SoftDeleted = true;
                 db.SaveChanges();
             }
-
-            Console.WriteLine("--- Test Complete ---");
+            Console.WriteLine("----Test Delete----");
             ShowItems();
         }
 
-        // 1 : N
-        // Player : Guild
-        public static void ShowGuilds()
-        {
-            using (var db = new AppDbContext())
-            {
-                foreach (var guild in db.Guilds.MapGuildToDto())
-                {
-                    Console.WriteLine
-                        ($"GuildID({guild.GuildId}) " +
-                        $"Guild Name({guild.Name}) " +
-                        $"MemberCount({guild.MemberCount})");
-                }
-            }
-        }
-
-        // N : N
-
-        public static void Update_1vN()
-        {
-            ShowGuilds();
-
-            Console.WriteLine("Input Item Switch PlayerId");
-            Console.Write(" > ");
-            int id = int.Parse(Console.ReadLine());
-
-            using (var db = new AppDbContext())
-            {
-                Guild guild = db.Guilds
-                    .Include(g => g.Members)
-                    .Single(g => g.GuildId == id);
-
-                guild.Members.Add(new Player()
-                {
-                    Name = "Dopa"
-                });
-                db.SaveChanges();
-            }
-
-            Console.WriteLine("--- Test Complete ---");
-            ShowGuilds();
-        }
         #endregion
 
+
+        #region RelationShip Update
+        //public static void ShowItems()
+        //{
+        //    using (var db = new AppDbContext())
+        //    {
+        //        foreach (var item in db.Items.Include(i => i.Owner).ToList())
+        //        {
+        //            if (item.Owner == null)
+        //                Console.WriteLine($"ItemID({item.ItemId}) TemplateID({item.TemplateId}) Owner(null)");
+        //            else
+        //                Console.WriteLine($"ItemID({item.ItemId}) TemplateID({item.TemplateId}) OwnerId({item.Owner.PlayerId}) OwnerName({item.Owner.Name})");
+        //        }
+        //    }
+        //}
+
+        //// 1vs1
+        //public static void Update_1v1()
+        //{
+        //    ShowItems();
+
+        //    Console.WriteLine("Input Item Switch PlayerId");
+        //    Console.Write(" > ");
+        //    int id = int.Parse(Console.ReadLine());
+
+        //    using (var db = new AppDbContext())
+        //    {
+        //        Player player = db.Players
+        //            .Include(p => p.Items)
+        //            .Single(p => p.PlayerId == id);
+
+        //        player.Items.Add(new Item()
+        //        {
+        //            TemplateId = 777,
+        //            CreatedDate = DateTime.Now
+        //        });
+        //        db.SaveChanges();
+        //    }
+
+        //    Console.WriteLine("--- Test Complete ---");
+        //    ShowItems();
+        //}
+
+        //// 1 : N
+        //// Player : Guild
+        //public static void ShowGuilds()
+        //{
+        //    using (var db = new AppDbContext())
+        //    {
+        //        foreach (var guild in db.Guilds.MapGuildToDto())
+        //        {
+        //            Console.WriteLine
+        //                ($"GuildID({guild.GuildId}) " +
+        //                $"Guild Name({guild.Name}) " +
+        //                $"MemberCount({guild.MemberCount})");
+        //        }
+        //    }
+        //}
+
+        //// N : N
+        //public static void Update_1vN()
+        //{
+        //    ShowGuilds();
+
+        //    Console.WriteLine("Input Item Switch PlayerId");
+        //    Console.Write(" > ");
+        //    int id = int.Parse(Console.ReadLine());
+
+        //    using (var db = new AppDbContext())
+        //    {
+        //        Guild guild = db.Guilds
+        //            .Include(g => g.Members)
+        //            .Single(g => g.GuildId == id);
+
+        //        guild.Members.Add(new Player()
+        //        {
+        //            Name = "Dopa"
+        //        });
+        //        db.SaveChanges();
+        //    }
+
+        //    Console.WriteLine("--- Test Complete ---");
+        //    ShowGuilds();
+        //}
+        #endregion
         #region Nullable
         //
         // Q) Dependent 데이터가 Principal 데이터 없이 존재할 수 있을까?

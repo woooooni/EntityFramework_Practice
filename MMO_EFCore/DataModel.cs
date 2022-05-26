@@ -16,6 +16,7 @@ namespace MMO_EFCore
     [Table("Item")] //Attribute로 테이블 이름 지정.
     public class Item
     {
+        public bool SoftDeleted { get; set; }
         //이름ID => PK
         public int ItemId { get; set; }
         public int TemplateId { get; set; } // ex) 101 = 포션, ...

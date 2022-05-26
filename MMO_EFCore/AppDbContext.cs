@@ -30,5 +30,12 @@ namespace MMO_EFCore
         {
             options.UseSqlServer(connString);
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            //Entity에 접근할 때 항상 사용되는 모델레벨의 필터링
+            // 필터를 무시하고 싶으면 Ignore~~ 프로퍼티 사용.
+            modelBuilder.Entity<Item>().HasQueryFilter(i => i.SoftDeleted == false);
+        }
     }
 }
